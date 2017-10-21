@@ -38,8 +38,8 @@ class Messages extends Component {
     let db = firebase.firestore();
     db.collection("messages").get().then((querySnapshot) => {
       let messages = [];
-      querySnapshot.forEach((doc) => {
-        messages.push(doc.data());
+      querySnapshot.forEach((docSnap) => {
+        messages.push(Object.assign({id: docSnap.id}, docSnap.data()));
       });
       this.setState({messages: messages})
     });
@@ -68,8 +68,7 @@ class Messages extends Component {
         <ul>
           {
             this.state.messages.map((message) => {
-              console.log(message);
-              return <li>{message.content}</li>
+              return <li key={message.id}>{message.content}</li>
             })
           }
         </ul>
