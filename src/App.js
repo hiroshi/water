@@ -10,46 +10,26 @@ firebase.initializeApp({
   projectId: process.env.REACT_APP_FIREBASE_PROJECT_ID
 });
 
-firebase.auth().getRedirectResult().then(function(result) {
-  if (result.credential) {
-    // This gives you a Google Access Token. You can use it to access the Google API.
-    // var token = result.credential.accessToken;
-    // console.log(token)
-    // ...
-  }
-  // The signed-in user info.
-  // var user = result.user;
-}).catch(function(error) {
-  console.log(error)
-  // Handle Errors here.
-  // var errorCode = error.code;
-  // var errorMessage = error.message;
-  // // The email of the user's account used.
-  // var email = error.email;
-  // // The firebase.auth.AuthCredential type that was used.
-  // var credential = error.credential;
-  // ...
-});
-
 class Messages extends Component {
   constructor (props) {
     super(props)
     this.state = {messages: []}
     let db = firebase.firestore();
-    db.collection("messages").get().then((querySnapshot) => {
+    db.collection("messages").orderBy('timestamp').onSnapshot((querySnapshot) => {
       let messages = [];
       querySnapshot.forEach((docSnap) => {
-        messages.push(Object.assign({id: docSnap.id}, docSnap.data()));
+        messages.unshift(Object.assign({id: docSnap.id}, docSnap.data()));
       });
       this.setState({messages: messages})
     });
   }
 
-  push () {
+  push = () => {
     // add data
     let db = firebase.firestore();
     db.collection("messages").add({
-        content: 'hello firestore'
+      timestamp: Date(),
+      content: this.textarea.value
     })
     .then(function(docRef) {
         console.log("Document written with ID: ", docRef.id);
@@ -63,6 +43,7 @@ class Messages extends Component {
     return (
       <div>
         <div>
+          <textarea ref={(x)=>{this.textarea = x}}></textarea>
           <button onClick={this.push}>push</button>
         </div>
         <ul>
@@ -95,6 +76,11 @@ class App extends Component {
     let provider = new firebase.auth.GoogleAuthProvider();
     provider.addScope('https://www.googleapis.com/auth/plus.login');
     firebase.auth().signInWithRedirect(provider);
+    firebase.auth().getRedirectResult().then(function(result) {
+      console.log(result);
+    }).catch(function(error) {
+      console.log(error)
+    });
   }
 
   render () {
